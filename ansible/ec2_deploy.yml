@@ -1,0 +1,79 @@
+- name: Deploy to EC2
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Launch EC2 instance
+      ec2_instance:
+        instance_type: t2.medium
+        image_id: ami-0230bd60aa48260c6
+        region: us-east-1
+        key_name: "key_sp"
+        vpc_subnet_id: subnet-0ed735687b3e7deff
+        network:
+          assign_public_ip: yes
+        wait: yes
+        count: 1
+        security_group: Eshop
+        aws_access_key: "{{access_key}}"
+        aws_secret_key: "{{secret_key}}"
+        security_token: "{{session_token}}"
+      register: ec2_instance_result
+    - name: Add instance host to group
+      add_host:
+        hostname: "{{ item.public_ip_address }}"
+        groupname: launched
+      loop: "{{ ec2_instance_result.instances }}"
+      when: item.state.code == 0
+    - name: Wait for ssh
+      wait_for:
+        host: "{{item.public_ip_address}}"
+        port: 22
+        delay: 10
+        timeout: 300
+      loop: "{{ec2_instance_result.instances}}"
+      when: item.public_ip_address is defined
+
+- name: Config EC2
+  hosts: launched
+  connection: ssh
+  tasks:
+    - name: Install git
+      yum:
+        name:
+          - git
+          - docker
+        state: latest
+        update_cache: yes
+      become: yes
+    - service:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+    - name: Start docker on startup
+      shell: systemctl enable docker
+      become: yes
+    - name: set rights to docker
+      shell: usermod -a -G docker ec2-user
+      become: yes
+    - name: Get eshop from git
+      git:
+        repo: "https://github.com/random-accnt/4IT572_docker_sp.git"
+        dest: ./app
+    - name: Build docker with eshop
+      shell: |
+        cd app
+        docker build -t myeshop:latest .
+      become: yes
+    - name: run docker with eshop
+      shell: docker run -p 80:3000 myeshop
+      async: 45
+      poll: 0
+      become: yes
+    - name: Wait for port 80
+      wait_for:
+        host: 127.0.0.1
+        port: 80
+        delay: 10
+        timeout: 120
