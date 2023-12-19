@@ -1,3 +1,16 @@
+- name: Delete old instances
+  hosts: localhost
+  tasks:
+    - name: Terminate old running instances
+      ec2_instance:
+        region: us-east-1
+        aws_access_key: "{{access_key}}"
+        aws_secret_key: "{{secret_key}}"
+        security_token: "{{session_token}}"
+        state: absent
+        filters:
+          instance-state-name: running
+
 - name: Deploy to EC2
   hosts: localhost
   connection: local
