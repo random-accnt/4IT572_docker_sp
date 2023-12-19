@@ -76,3 +76,29 @@ jobs:
       - name: Run test
         run: |
           npm run test -- --colors
+
+  Deploy:
+    needs: [Build, Test]
+    if: ${{github.ref == 'refs/heads/main'}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          token: ${{secrets.WORKFLOW_TOKEN}}
+      - name: Load Node modules and build folder
+        uses: actions/cache@v3.3.2
+        with:
+          path: |
+            ~/.npm
+            ./node_modules
+            ./build
+          key: ${{runner.os}}-build-${{github.run_id}}
+      - name: Deploy to EC2
+        uses: aimerib/ansible-playwright@v2.7.7
+        with:
+          playbook: ec2_deploy.yml
+          directory: ansible
+          vault_password: ${{secrets.VAULT_PASSWORD}}
+          options: |
+            --user ec2-user
