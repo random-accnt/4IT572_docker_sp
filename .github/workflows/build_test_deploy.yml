@@ -95,5 +95,10 @@ jobs:
             ./build
           key: ${{runner.os}}-build-${{github.run_id}}
       - name: Deploy to EC2
-        run: |
-          echo "Deployment not implemented yet"
+        uses: aimerib/ansible-playwright@v2.7.7
+        with:
+          playbook: ec2_deploy.yml
+          directory: ansible
+          vault_password: ${{secrets.VAULT_PASSWORD}}
+          options: |
+            --user ec2-user
