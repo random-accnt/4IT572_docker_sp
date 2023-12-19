@@ -101,6 +101,7 @@ jobs:
         run: |
           mkdir ~/.keys
           echo $PRIVATE_KEY > ~/.keys/key_sp.pem
+          chmod 400 ~/.keys/key_sp.pem
         env:
           PRIVATE_KEY: ${{secrets.AWS_KEY}}
       - name: Deploy to EC2
