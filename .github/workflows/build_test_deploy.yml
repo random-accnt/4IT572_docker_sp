@@ -94,6 +94,10 @@ jobs:
             ./node_modules
             ./build
           key: ${{runner.os}}-build-${{github.run_id}}
+      - name: Python dependencies install
+        run: |
+          /opt/pipx/venvs/ansible-core/bin/python -m pip install boto
+          /opt/pipx/venvs/ansible-core/bin/python -m pip install boto3
       - name: Deploy to EC2
         uses: aimerib/ansible-playwright@v2.7.7
         with:
