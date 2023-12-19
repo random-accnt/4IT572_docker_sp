@@ -103,7 +103,7 @@ jobs:
       - name: Save key to file
         run: |
           mkdir ~/.ssh
-          echo echo -e ${{secrets.AWS_KEY}} > ~/.ssh/key_sp.pem
+          echo -e ${{secrets.AWS_KEY}} > ~/.ssh/key_sp.pem
           chmod 700 ~/.ssh/key_sp.pem
       - name: Deploy to EC2
         uses: aimerib/ansible-playwright@v2.7.7
