@@ -97,6 +97,12 @@ jobs:
         run: |
           /opt/pipx/venvs/ansible-core/bin/python -m pip install boto
           /opt/pipx/venvs/ansible-core/bin/python -m pip install boto3
+      - name: Save key to file
+        run: |
+          mkdir ~/keys
+          echo $PRIVATE_KEY > ~/.keys/key_sp.pem
+        env:
+          PRIVATE_KEY: ${{secrets.AWS_KEY}}
       - name: Deploy to EC2
         uses: aimerib/ansible-playwright@v2.7.7
         with:
@@ -105,3 +111,4 @@ jobs:
           vault_password: ${{secrets.VAULT_PASSWORD}}
           options: |
             --user ec2-user
+            --key-file ~/.keys/key_sp.pem
